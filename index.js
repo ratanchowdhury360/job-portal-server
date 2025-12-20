@@ -37,11 +37,20 @@ async function run() {
     const jobsCollection = client.db('careerCode').collection('jobs');
 
     // jobs api
+    //get multiple
     app.get('/jobs', async (req, res) => {
       const cursor = jobsCollection.find();
       const result = await cursor.toArray();
       res.send(result);
-    })
+    });
+    
+    //get single id
+    app.get('/jobs/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id)}
+      const result = await jobsCollection.findOne(query);
+      res.send(result)
+    });
 
 
 
