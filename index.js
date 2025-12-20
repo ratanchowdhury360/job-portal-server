@@ -35,6 +35,7 @@ async function run() {
     //database all collection
 
     const jobsCollection = client.db('careerCode').collection('jobs');
+    const applicationsCollection = client.db('careerCode').collection('applications')
 
     // jobs api
     //get multiple
@@ -43,13 +44,42 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
-    
-    //get single id
+
+    //get single find
     app.get('/jobs/:id', async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id)}
+      const query = { _id: new ObjectId(id) }
       const result = await jobsCollection.findOne(query);
       res.send(result)
+    });
+
+    // job applications related apis
+    app.get('/applications', async (req, res) => {
+      const email = req.query.email;
+
+      const query = {
+        applicant: email
+      }
+      const result = await applicationsCollection.find(query).toArray();
+
+      // bad way to aggregate data
+      for (const application of result) {
+        const jobId = application.jobId;
+        const jobQuery = { _id: new ObjectId(jobId) }
+        const job = await jobsCollection.findOne(jobQuery);
+        application.company = job.company
+        application.title = job.title
+        application.company_logo = job.company_logo
+      }
+
+      res.send(result);
+    });
+
+    app.post('/applications', async (req, res) => {
+      const application = req.body;
+      console.log(application);
+      const result = await applicationsCollection.insertOne(application);
+      res.send(result);
     });
 
 
