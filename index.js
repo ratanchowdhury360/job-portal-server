@@ -57,6 +57,12 @@ app.get('/jobs', async (req, res) => {
     if (!jobsCollection) {
       return res.status(503).json({ error: 'Database not connected' });
     }
+
+     const email = req.query.email;
+      const query = {};
+      if(email){
+        query.hr_email = email;
+      }
     const cursor = jobsCollection.find();
     const result = await cursor.toArray();
     res.json(result);
@@ -65,6 +71,16 @@ app.get('/jobs', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch jobs', message: error.message });
   }
 });
+
+
+
+ // could be done but should not be done.
+    // app.get('/jobsByEmailAddress', async (req, res) => {
+    //   const email = req.query.email;
+    //   const query = { hr_email: email }
+    //   const result = await jobsCollection.find(query).toArray();
+    //   res.send(result);
+    // })
 
 // could be done
 app.get('/jobsByEmailAddress', async (req, res) => {
