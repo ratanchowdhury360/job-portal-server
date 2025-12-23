@@ -197,16 +197,48 @@ app.post('/applications', async (req, res) => {
 
 
 app.patch('/applications/:id', async (req, res) => {
-  const id = req.params.id;
-  const filter = { _id: new ObjectId(id) }
-  const updatedDoc = {
-    $set: {
-      status: req.body.status
+  try {
+    if (!applicationsCollection) {
+      return res.status(503).json({ error: 'Database not connected' });
     }
+    const id = req.params.id;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid application ID format' });
+    }
+    const filter = { _id: new ObjectId(id) };
+    const updatedDoc = {
+      $set: {
+        status: req.body.status
+      }
+    };
+    const result = await applicationsCollection.updateOne(filter, updatedDoc);
+    res.json(result);
+  } catch (error) {
+    console.error('Error updating application:', error);
+    res.status(500).json({ error: 'Failed to update application', message: error.message });
   }
-  const result = await applicationsCollection.updateOne(filter, updatedDoc)
-  res.send(result);
-})
+});
+
+app.delete('/applications/:id', async (req, res) => {
+  try {
+    if (!applicationsCollection) {
+      return res.status(503).json({ error: 'Database not connected' });
+    }
+    const id = req.params.id;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid application ID format' });
+    }
+    const filter = { _id: new ObjectId(id) };
+    const result = await applicationsCollection.deleteOne(filter);
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: 'Application not found' });
+    }
+    res.json({ message: 'Application deleted successfully', result });
+  } catch (error) {
+    console.error('Error deleting application:', error);
+    res.status(500).json({ error: 'Failed to delete application', message: error.message });
+  }
+});
 
 
 
